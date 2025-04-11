@@ -1,0 +1,132 @@
+{
+  "scene": 0,
+  "asset": {
+    "generator": "ImageToStl.com",
+    "version": "2.0"
+  },
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Node0",
+      "children": [
+        1
+      ]
+    },
+    {
+      "name": "Node1",
+      "mesh": 0
+    }
+  ],
+  "materials": [
+    {
+      "name": "Material_0",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.8,
+          0.8,
+          0.8,
+          1
+        ],
+        "metallicFactor": 0.5,
+        "roughnessFactor": 0.96
+      },
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "doubleSided": true
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Mesh0",
+      "primitives": [
+        {
+          "indices": 3,
+          "material": 0,
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          }
+        }
+      ]
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 96483,
+      "type": "VEC3",
+      "min": [
+        -1.00244,
+        -0.615368,
+        -0.792306
+      ],
+      "max": [
+        0.99642,
+        0.615003,
+        0.784854
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 96483,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 96483,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5125,
+      "count": 1444644,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "target": 34962,
+      "buffer": 0,
+      "byteLength": 1157796,
+      "byteOffset": 0
+    },
+    {
+      "target": 34962,
+      "buffer": 0,
+      "byteLength": 1157796,
+      "byteOffset": 1157796
+    },
+    {
+      "target": 34962,
+      "buffer": 0,
+      "byteLength": 771864,
+      "byteOffset": 2315592
+    },
+    {
+      "target": 34963,
+      "buffer": 0,
+      "byteLength": 5778576,
+      "byteOffset": 3087456
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "ImageToStl.com_rpl_data.bin",
+      "byteLength": 8866032
+    }
+  ]
+}
