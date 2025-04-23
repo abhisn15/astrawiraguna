@@ -4,17 +4,16 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Classroom3D from "../../components/classroom3D";
 
-// Registrasi plugin ScrollTrigger
 gsap.registerPlugin(ScrollTrigger);
 
 const Home = () => {
 	const sectionRef = useRef();
 	const headingRef = useRef();
 	const sceneContainerRef = useRef();
+	const classroomRef = useRef();
 
 	useLayoutEffect(() => {
 		const ctx = gsap.context(() => {
-			// Animasi untuk heading
 			gsap.from(headingRef.current, {
 				scrollTrigger: {
 					trigger: headingRef.current,
@@ -27,17 +26,25 @@ const Home = () => {
 				ease: "power4.out",
 			});
 
-			// Animasi scaling untuk container 3D berdasarkan scroll
-			gsap.to(sceneContainerRef.current, {
-				scrollTrigger: {
-					trigger: sectionRef.current,
-					start: "top top",
-					end: "bottom top",
-					scrub: true,
-				},
-				scale: 1.5, // Ubah nilai scale sesuai kebutuhan
-				ease: "none",
-			});
+			// gsap.to(sceneContainerRef.current, {
+			// 	scrollTrigger: {
+			// 		trigger: sectionRef.current,
+			// 		start: "top top",
+			// 		end: "bottom top",
+			// 		scrub: true,
+			// 		pin: true,
+			// 	},
+			// 	scale: 0.8,
+			// 	ease: "none",
+			// 	onUpdate: () => {
+			// 		if (classroomRef.current?.camera) {
+			// 			// Update camera aspect ratio
+			// 			classroomRef.current.camera.aspect =
+			// 				window.innerWidth / window.innerHeight;
+			// 			classroomRef.current.camera.updateProjectionMatrix();
+			// 		}
+			// 	},
+			// });
 		}, sectionRef);
 
 		return () => ctx.revert();
@@ -46,19 +53,15 @@ const Home = () => {
 	return (
 		<section
 			ref={sectionRef}
-			style={{ minHeight: "400vh", padding: "2rem" }}
 			className="relative">
 			<h1 ref={headingRef} style={{ fontSize: "4rem" }}>
 				Welcome to Astra Wiraraga
 			</h1>
-			{/* Container 3D yang akan di-animate */}
 			<div
 				ref={sceneContainerRef}
 				className="relative w-full h-screen overflow-hidden">
 				<Classroom3D />
 			</div>
-			{/* Anda bisa menambahkan konten lain dengan atribut data-speed atau lainnya */}
-			<div data-speed="0.9">{/* Konten tambahan */}</div>
 		</section>
 	);
 };
