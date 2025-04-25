@@ -54,9 +54,9 @@ const Home = () => {
 		<section
 			ref={sectionRef}
 			className="relative">
-			<h1 ref={headingRef} style={{ fontSize: "4rem" }}>
+			{/* <h1 ref={headingRef} style={{ fontSize: "4rem" }}>
 				Welcome to Astra Wiraraga
-			</h1>
+			</h1> */}
 			<div
 				ref={sceneContainerRef}
 				className="relative w-full h-screen overflow-hidden">
