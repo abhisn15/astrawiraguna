@@ -49,7 +49,7 @@ const Loader = ({ onComplete }) => {
 					fontFamily: "Arial, sans-serif",
 					opacity: 0,
 				}}>
-				Astra Wiraraga
+				Astra Wiraguna
 			</h1>
 		</div>
 	);
