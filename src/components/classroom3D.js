@@ -616,7 +616,7 @@ const Classroom3D = forwardRef((props, ref) => {
 				failIfMajorPerformanceCaveat: false,
 				outputColorSpace: THREE.SRGBColorSpace,
 				toneMapping: THREE.ACESFilmicToneMapping,
-				toneMappingExposure: Math.pow(2, .5),
+				toneMappingExposure: Math.pow(2, 0),
 				antialias: true,
 			}}
 			onCreated={({ gl }) => {
@@ -647,7 +647,7 @@ const Classroom3D = forwardRef((props, ref) => {
 				transition: "opacity 0.5s",
 			}}>
 			<Suspense fallback={<ElegantPreloader />}>
-				{/* <Environment preset="warehouse" background /> */}
+				{/* <Environment preset="sunset" background /> */}
 				<ClassroomScene ref={ref} />
 			</Suspense>
 		</Canvas>
