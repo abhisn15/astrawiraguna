@@ -294,6 +294,11 @@ const ClassroomScene = forwardRef((props, ref) => {
 	const mouse = useMemo(() => new THREE.Vector2(), []);
 
 	useEffect(() => {
+		gl.shadowMap.enabled = true;
+		gl.shadowMap.type = THREE.PCFSoftShadowMap;
+	}, [gl]);
+
+	useEffect(() => {
 		// Load audio buffer
 		const loader = new THREE.AudioLoader();
 		console.log(
@@ -440,6 +445,29 @@ const ClassroomScene = forwardRef((props, ref) => {
 		} else {
 			console.warn("JAM_DINDING tidak ditemukan dalam model!");
 		}
+		const sunLight = new THREE.DirectionalLight(0xffffff, 2); // Tingkatkan intensitas ke 2 untuk pencahayaan yang lebih kuat
+		sunLight.position.set(10, 15, 10); // Posisi lebih tinggi dan jauh agar shadow lebih natural
+		sunLight.castShadow = true;
+
+		// Tingkatkan resolusi shadow map untuk detail yang lebih baik
+		sunLight.shadow.mapSize.width = 4096; // Naikkan dari 2048 ke 4096
+		sunLight.shadow.mapSize.height = 4096; // Naikkan dari 2048 ke 4096
+
+		// Sesuaikan shadow camera agar mencakup area scene dengan baik
+		sunLight.shadow.camera.left = -20;
+		sunLight.shadow.camera.right = 20;
+		sunLight.shadow.camera.top = 20;
+		sunLight.shadow.camera.bottom = -20;
+		sunLight.shadow.camera.near = 0.1; // Kurangi dari 0.5 untuk akurasi lebih baik
+		sunLight.shadow.camera.far = 50; // Kurangi dari 500 agar lebih fokus pada area scene
+
+		// Tambahkan pengaturan untuk mengurangi artifact
+		sunLight.shadow.bias = -0.0001; // Hindari shadow acne
+		sunLight.shadow.normalBias = 0.05; // Kurangi artifact pada permukaan miring
+
+		scene.add(sunLight);
+		// const shadowHelper = new THREE.CameraHelper(sunLight.shadow.camera);
+		// scene.add(shadowHelper);
 
 		model.traverse((child) => {
 			if (child.isMesh) {
@@ -455,7 +483,7 @@ const ClassroomScene = forwardRef((props, ref) => {
 		return () => {
 			clearInterval(intervalRef.current);
 		};
-	}, [model]);
+	}, [model, scene]);
 
 	useFrame(() => {
 		// Tambahkan defensive checks untuk memastikan semua referensi jarum ada
@@ -497,7 +525,7 @@ const ClassroomScene = forwardRef((props, ref) => {
 				const targetPosition = new THREE.Vector3();
 				komputerRef.current.getWorldPosition(targetPosition);
 
-				const offset = new THREE.Vector3(0, 0, 0.5);
+				const offset = new THREE.Vector3(0, 0, .5);
 				const newCameraPos = targetPosition.clone().add(offset);
 
 				const tl = gsap.timeline();
@@ -550,24 +578,24 @@ const ClassroomScene = forwardRef((props, ref) => {
 	}));
 
 	return (
-    <>
-      <ContextRecovery />
-      <ambientLight intensity={0.3} />
-      <directionalLight position={[5, 10, 5]} intensity={1} castShadow />
-      <primitive object={model} />
-      <OrbitControls
-        ref={controls}
-        enableZoom
-        maxDistance={5}
-        maxPolarAngle={Math.PI / 2}
-        minPolarAngle={Math.PI / 3}
-        minAzimuthAngle={-Math.PI / 2}
-        maxAzimuthAngle={Math.PI / 5}
-        enableDamping
-        dampingFactor={0.1}
-      />
-    </>
-  );
+		<>
+			<ContextRecovery />
+			<ambientLight intensity={0.3} />
+			{/* <directionalLight position={[5, 10, 5]} intensity={1} castShadow /> */}
+			<primitive object={model} />
+			<OrbitControls
+				ref={controls}
+				enableZoom
+				maxDistance={5}
+				maxPolarAngle={Math.PI / 2}
+				minPolarAngle={Math.PI / 3}
+				minAzimuthAngle={-Math.PI / 2}
+				maxAzimuthAngle={Math.PI / 5}
+				enableDamping
+				dampingFactor={0.1}
+			/>
+		</>
+	);
 });
 
 const Classroom3D = forwardRef((props, ref) => {
@@ -610,7 +638,6 @@ const Classroom3D = forwardRef((props, ref) => {
 			ref={ref || canvasRef}
 			shadows
 			gl={{
-				context: undefined, // biar pakai WebGL2 otomatis
 				preserveDrawingBuffer: true, // ini penting biar nggak hilang
 				powerPreference: "high-performance",
 				failIfMajorPerformanceCaveat: false,
