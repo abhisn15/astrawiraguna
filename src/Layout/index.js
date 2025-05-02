@@ -12,7 +12,7 @@ function Layout() {
 	const [isLoading, setIsLoading] = useState(true);
 
 	return (
-		<BrowserRouter basename="/astrawiraguna">
+		<BrowserRouter>
 			{isLoading && <Loader onComplete={() => setIsLoading(false)} />}
 			<Suspense fallback={null}>
 				{!isLoading && (

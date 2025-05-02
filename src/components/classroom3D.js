@@ -20,6 +20,7 @@ import * as THREE from "three";
 import { Suspense } from "react"; // Digunakan untuk loading
 import gsap from "gsap";
 import { useNavigate } from "react-router-dom"; // Digunakan untuk navigasi
+import { DRACOLoader, GLTFLoader } from "three/examples/jsm/Addons.js";
 
 // Loader spesifik tidak perlu diimpor di sini saat menggunakan useGLTF dan <Draco> (jika dipakai)
 // import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -242,7 +243,19 @@ const ClassroomScene = forwardRef((props, ref) => {
 	const navigate = useNavigate();
 	// *** Model dimuat menggunakan useGLTF (dilacak Suspense/useProgress) ***
 	// useGLTF menangani loading model GLTF dan basic material
-	const { scene: model } = useGLTF("/assets/3D/kelas3D.gltf");
+	// Inside your ClassroomScene component
+	useGLTF.preload("/assets/3D/kelas3D.gltf");
+	const { scene: model } = useGLTF(
+		"/assets/3D/kelas3D.gltf",
+		null,
+		(loader) => {
+			const draco = new DRACOLoader();
+			draco.setDecoderPath(
+				"https://www.gstatic.com/draco/versioned/decoders/1.5.7/",
+			);
+			loader.setDRACOLoader(draco);
+		},
+	);
 
 	// Refs untuk objek model (akan dicari SETELAH model dimuat)
 	const komputerRef = useRef();
@@ -596,11 +609,16 @@ const ClassroomScene = forwardRef((props, ref) => {
 		// Tambahkan Directional Light (jika belum ada di scene)
 		const existingLight = scene.getObjectByName("mainDirectionalLight");
 		if (!existingLight) {
-			const sunLight = new THREE.DirectionalLight(0xffffff, 2);
+			const isMobile =
+				/Mobi|Android|Tablet/.test(navigator.userAgent) ||
+				window.innerWidth < 768;
+			const intensity = isMobile ? 8 : 2;
+			const shadowMap = isMobile ? 1024 : 2086;
+			const sunLight = new THREE.DirectionalLight(0xffffff, intensity);
 			sunLight.position.set(7, 15, 10);
 			sunLight.castShadow = true;
-			sunLight.shadow.mapSize.width = 4096;
-			sunLight.shadow.mapSize.height = 4096;
+			sunLight.shadow.mapSize.width = shadowMap;
+			sunLight.shadow.mapSize.height = shadowMap;
 			sunLight.shadow.camera.left = -20;
 			sunLight.shadow.camera.right = 20;
 			sunLight.shadow.camera.top = 20;
@@ -839,8 +857,8 @@ const ClassroomScene = forwardRef((props, ref) => {
 	return (
 		<>
 			<ContextRecovery />
-			<ambientLight intensity={0.3} />
-			{/* Directional light (sunLight) ditambahkan di useEffect */}
+			<ambientLight intensity={0.8} />
+			
 			<primitive object={model} /> {/* Tampilkan model 3D */}
 			<OrbitControls
 				ref={controls}
@@ -859,7 +877,8 @@ const ClassroomScene = forwardRef((props, ref) => {
 
 const Classroom3D = forwardRef((props, ref) => {
 	const [webglSupported, setWebglSupported] = useState(true);
-	const canvasRef = useRef();
+	const isMobile =
+		/Mobi|Android|Tablet/.test(navigator.userAgent) || window.innerWidth < 768;
 
 	useEffect(() => {
 		if (!checkWebGLSupport()) {
@@ -889,49 +908,13 @@ const Classroom3D = forwardRef((props, ref) => {
 
 	return (
 		<Canvas
-			ref={ref || canvasRef}
 			shadows
-			gl={{
-				preserveDrawingBuffer: true,
-				powerPreference: "high-performance",
-				failIfMajorPerformanceCaveat: false,
-				outputColorSpace: THREE.SRGBColorSpace,
-				toneMapping: THREE.ACESFilmicToneMapping,
-				toneMappingExposure: 1.0,
-				antialias: true,
-			}}
-			onCreated={({ gl }) => {
-				gl.getContext();
-				gl.domElement.addEventListener("webglcontextlost", (e) => {
-					e.preventDefault();
-					console.warn("WebGL Context Lost! Trying to recover...");
-					setTimeout(() => {
-						if (gl.forceContextRestore) gl.forceContextRestore();
-					}, 500);
-				});
-			}}
+			camera={{ fov: 45, near: 0.1, far: 1000, position: [-3, 2, 8] }}
+			gl={{ antialias: true, preserveDrawingBuffer: true }}
 			dpr={Math.min(window.devicePixelRatio, 1.5)}
-			camera={{
-				fov: 45,
-				near: 0.1,
-				far: 1000,
-				position: [-3, 2, 8],
-			}}
-			style={{
-				width: "100%",
-				height: "100dvh",
-				backgroundColor: "#191919", // Warna background default
-				opacity: 1,
-				transition: "opacity 0.5s",
-			}}>
+			style={{ width: "100%", height: "100vh", background: "#191919" }}>
 			<Suspense fallback={<ElegantPreloader />}>
-				<Environment preset="sunset" background />
-				{/* Tambahkan komponen Draco jika model GLTF Anda terkompresi */}
-				{/* Ini membantu useGLTF menemukan decoder Draco secara otomatis */}
-				{/* Pastikan file decoder Draco ada di folder public, misal /draco/ */}
-				{/* <Draco /> */}{" "}
-				{/* Uncomment baris ini jika model Anda butuh Draco */}
-				{/* Komponen Scene Utama yang menampilkan model 3D dan logika interaksi */}
+				{!isMobile && <Environment preset="sunset" background />}
 				<ClassroomScene ref={ref} />
 			</Suspense>
 		</Canvas>
