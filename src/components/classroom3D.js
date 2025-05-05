@@ -241,6 +241,7 @@ const ClassroomScene = forwardRef((props, ref) => {
 	const { camera, gl, scene } = useThree();
 	const controls = useRef();
 	const navigate = useNavigate();
+	const casingKipasRef = useRef();
 	// *** Model dimuat menggunakan useGLTF (dilacak Suspense/useProgress) ***
 	// useGLTF menangani loading model GLTF dan basic material
 	// Inside your ClassroomScene component
@@ -473,6 +474,10 @@ const ClassroomScene = forwardRef((props, ref) => {
 		let foundNeck, foundStrings, foundKomputer, foundJam, foundGif;
 
 		model.traverse((child) => {
+			if (child.name === "Kipas") {
+				// Cari case fan
+				casingKipasRef.current = child;
+			}
 			if (child.name === "Neck") foundNeck = child;
 			if (child.name === "Strings") foundStrings = child;
 			if (child.name === "KOMPUTER_RPL") foundKomputer = child;
@@ -613,7 +618,7 @@ const ClassroomScene = forwardRef((props, ref) => {
 				/Mobi|Android|Tablet/.test(navigator.userAgent) ||
 				window.innerWidth < 768;
 			const intensity = isMobile ? 8 : 2;
-			const shadowMap = isMobile ? 1024 : 2086;
+			const shadowMap = isMobile ? 512 : 2086;
 			const sunLight = new THREE.DirectionalLight(0xffffff, intensity);
 			sunLight.position.set(7, 15, 10);
 			sunLight.castShadow = true;
@@ -660,6 +665,17 @@ const ClassroomScene = forwardRef((props, ref) => {
 		setAudioBuffer, // setAudioBuffer state setter
 		stringsOriginalY, // stringsOriginalY ref
 	]);
+
+	//Fan animasi
+	useFrame((state, delta) => {
+		if (casingKipasRef.current) {
+			const rotationSpeed = 2 * Math.PI;
+			const angle = rotationSpeed * delta;
+			const axis = new THREE.Vector3(1,0, 0, 0);
+			const q = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+			casingKipasRef.current.quaternion.multiply(q);
+		}
+	});
 
 	// *** useFrame untuk animasi jam dinding (tetap di sini) ***
 	// Ini akan berjalan setiap frame, cek ref jam di dalamnya
@@ -858,7 +874,6 @@ const ClassroomScene = forwardRef((props, ref) => {
 		<>
 			<ContextRecovery />
 			<ambientLight intensity={0.8} />
-			
 			<primitive object={model} /> {/* Tampilkan model 3D */}
 			<OrbitControls
 				ref={controls}
@@ -909,12 +924,12 @@ const Classroom3D = forwardRef((props, ref) => {
 	return (
 		<Canvas
 			shadows
-			camera={{ fov: 45, near: 0.1, far: 1000, position: [-3, 2, 8] }}
+			camera={{ fov: 45, near: 0.1, far: 2000, position: [8, 2, -3] }}
 			gl={{ antialias: true, preserveDrawingBuffer: true }}
 			dpr={Math.min(window.devicePixelRatio, 1.5)}
 			style={{ width: "100%", height: "100vh", background: "#191919" }}>
 			<Suspense fallback={<ElegantPreloader />}>
-				{!isMobile && <Environment preset="sunset" background />}
+				<Environment preset="sunset" background />
 				<ClassroomScene ref={ref} />
 			</Suspense>
 		</Canvas>
