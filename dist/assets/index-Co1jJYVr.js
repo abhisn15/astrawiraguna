@@ -1,0 +1,1 @@
+import{j as e}from"./vendor-D2Rcybzd.js";function s(){return e.jsx("div",{className:"flex flex-col justify-center items-center h-screen bg-black",children:e.jsx("h1",{className:"text-4xl text-white shadow-md shadow-red-500 font-extrabold",children:"INI HALAMAN RPL KONTOLLL!!!"})})}export{s as default};

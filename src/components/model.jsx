@@ -25,13 +25,13 @@ const ADAPTIVE_CONFIG = {
 		desktop: true
 	},
 	viewportResolution: {
-		mobile: 0.5,
-		desktop: 0.5,
+		mobile: 0.8,
+		desktop: 2,
 	},
 	lights: {
 		intensity: {
 			mobile: 0.8,
-			desktop: 0.8
+			desktop: 2
 		},
 		distance: {
 			mobile: 2,
@@ -91,8 +91,13 @@ const NODE_NAMES_CONFIG = {
 		{
 			key: "piano001",
 			meshName: "Piano001",
-			hoverScaleFactor: 1.05,
+			hoverScaleFactor: 1.01,
 			isPiano: true,
+		},
+		{
+			key: "piano",
+			hoverScaleFactor: 1.0,
+			meshName: "Piano",
 		},
 	],
 	fansGroup1: ["KIPAS", "KIPAS001", "KIPAS002"],
@@ -118,7 +123,6 @@ const NODE_NAMES_CONFIG = {
 	],
 };
 
-export const isMobile = () => { useMobileDetector() };
 // Komponen AnimatedSignBoard (Tidak berubah dari kode asli Anda)
 const AnimatedSignBoard = ({
 	node,
@@ -127,6 +131,7 @@ const AnimatedSignBoard = ({
 	overshootFactor = 1.15,
 	path,
 }) => {
+	const isMobile = useMobileDetector();
 	const navigate = useNavigate();
 	const primitiveRef = useRef();
 	const initialScale = useMemo(
@@ -412,20 +417,24 @@ const AnimatedInteractiveMesh = ({
 				if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
 				// Set timeout untuk mengembalikan backsound setelah 1 detik
-				timeoutRef.current = setTimeout(() => {
-					if (Date.now() - lastPianoSoundTimeRef.current >= 1000) {
-						fadeInBackgroundMusic();
-					}
-				}, 1000);
+					timeoutRef.current = setTimeout(() => {
+						if (Date.now() - lastPianoSoundTimeRef.current >= 1000) {
+							fadeInBackgroundMusic();
+						}
+					}, 1000);
+					return null;
 			} else {
 				console.warn(`Suara untuk ${soundKey} tidak ditemukan.`);
+				return null;
 			}
 		} else if (path) {
 			if (path.startsWith("http"))
 				window.open(path, "_blank", "noopener,noreferrer");
 			else navigate(path);
+			return null;
 		} else {
 			console.warn("No path/action defined for this interactive mesh:", node?.name);
+			return null;
 		}
 	};
 
@@ -517,7 +526,7 @@ const Model = ({
 	const isMobile = useMobileDetector();
 	const { gl,size } = useThree();
 	const gpuTier = useDetectGPU();
-	const { scene, nodes: allNodesFromGLTF } = useGLTF("/assets/models/Room.glb");
+	const { scene, nodes: allNodesFromGLTF } = useGLTF("/assets/models/Room.gltf");
 	const fanRefs = useRef({});
 	const clockPartsRef = useRef({
 		face: null,
@@ -698,7 +707,7 @@ const Model = ({
 					lampMeshNode.getWorldPosition(worldPosition);
 					pointLight.position.copy(worldPosition);
 					scene.add(pointLight);
-					if (!isNightMode) {
+					if (isNightMode) {
 						const mats = Array.isArray(lampMeshNode.material)
 							? lampMeshNode.material
 							: [lampMeshNode.material];
@@ -735,7 +744,7 @@ const Model = ({
 			});
 			lampPointLightAssetsRef.current = [];
 		};
-	}, [scene, animatedRefs.lights]); // Re-run jika scene atau referensi mesh lampu berubah
+	}, [scene, animatedRefs.lights, isNightMode]); // Re-run jika scene atau referensi mesh lampu berubah
 
 	// useEffect untuk menganimasikan intensitas cahaya dan material emisif berdasarkan isNightMode
 	useEffect(() => {
@@ -783,12 +792,21 @@ const Model = ({
 							if (isNightMode) {
 								mat.emissive.setHex(nightEmissiveColor);
 								mat.toneMapped = false;
+								gsap.to(pointLight, {
+									duration: 0.6,
+									ease: "sine.inOut",
+								});
 							}
 						},
 						onComplete: () => {
 							if (!isNightMode) {
 								mat.emissive.setHex(mat.userData.originalEmissiveColorHex);
 								mat.toneMapped = mat.userData.originalToneMapped;
+								gsap.to(pointLight, {
+									intensity: isNightMode ? 1 : 1,
+									duration: 0.6,
+									ease: "sine.inOut",
+								});
 							}
 							mat.needsUpdate = true;
 						},
@@ -802,12 +820,7 @@ const Model = ({
 				}
 
 				// Animasi intensitas PointLight
-				const target = !isNightMode ? nightPointLightIntensity : 0;
-				gsap.to(pointLight, {
-					intensity: target,
-					duration: 0.6,
-					ease: "sine.inOut",
-				});
+				
 			}
 		});
 	}, [isNightMode]); // Re-run jika isNightMode atau scene berubah
@@ -1194,4 +1207,4 @@ const Model = ({
 };
 
 export default Model;
-useGLTF.preload("/assets/models/Room.glb");
+useGLTF.preload("/assets/models/Room.gltf");

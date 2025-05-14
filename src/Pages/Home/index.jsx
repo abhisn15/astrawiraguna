@@ -4,8 +4,9 @@ import React, {
 	useState,
 	useEffect,
 	Suspense,
+	useMemo,
 } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useLoader, useThree } from "@react-three/fiber";
 import {
 	OrbitControls,
 	Html,
@@ -15,10 +16,39 @@ import {
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Howl, Howler } from "howler";
-import Model, { isMobile } from "../../components/model"; // Pastikan path ini benar
+import Model from "../../components/model"; // Pastikan path ini benar
+import { RGBELoader } from "three/examples/jsm/Addons.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const useMobileDetector = () => {
+	return useMemo(() => {
+		if (typeof window === "undefined") return false;
+		return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+			navigator.userAgent
+		);
+	}, []);
+};
+
+function CustomEnvironment({ isNightMode }) {
+	const dayEnv = useLoader(RGBELoader, "/assets/env/day.hdr");
+	const nightEnv = useLoader(RGBELoader, "/assets/env/night.hdr");
+	const texture = isNightMode ? nightEnv : dayEnv;
+
+	// Mapping dan encoding
+	texture.mapping = useThree.EquirectangularReflectionMapping;
+	texture.encoding = useThree.RGBEEncoding;
+
+	return (
+		<Environment
+			background
+			files={isNightMode ? "/assets/env/night.hdr" : "/assets/env/day.hdr"}
+			path=""
+			backgroundIntensity={1}
+			ground={{ height: 5, radius: 30, scale: 100 }}
+		/>
+	);
+}
 // --- Komponen UI Tambahan (Modal, Overlay, LoadingScreenContent) ---
 const Modal = ({ title, children, isOpen, onClose, id }) => {
 	const modalRef = useRef();
@@ -238,6 +268,7 @@ const Home = () => {
 	const [isMusicFaded, setIsMusicFaded] = useState(false);
 
 	const { progress } = useProgress();
+	const isMobile = useMobileDetector();
 
 	useEffect(() => {
 		backgroundMusicRef.current = new Howl({
@@ -344,8 +375,7 @@ const Home = () => {
 			Howler.ctx.resume();
 		}
 
-		if (backgroundMusicRef.current && !isMuted) {
-			backgroundMusicRef.current.volume(BACKGROUND_MUSIC_VOLUME); // Set volume sebelum play
+		if (backgroundMusicRef.current && !backgroundMusicRef.current.playing()) {
 			backgroundMusicRef.current.play();
 		}
 
@@ -551,15 +581,14 @@ const Home = () => {
 				ref={sceneContainerRef}
 				className="relative w-full h-screen overflow-hidden">
 				<Canvas
-					shadows
-					frameloop={isMobile ? 'demand' : 'always'}
-					dpr={isMobile ? 1 :1}
+					shadows={false}
+					dpr={isMobile ? 0.7 : 2}
 					gl={{
-						antialias: false,                    // matikan antialias
-						powerPreference: isMobile ? 'low-power' : 'high-performance',
+						antialias: false, // matikan antialias
+						powerPreference: "high-performance",
 						preserveDrawingBuffer: false,
-						failIfMajorPerformanceCaveat: true,  // paksa fallback jika GPU jelek
-						majorVersion: 1,                     // paksa WebGL1
+						failIfMajorPerformanceCaveat: true, // paksa fallback jika GPU jelek
+						majorVersion: 1, // paksa WebGL1
 						minorVersion: 0,
 					}}
 					camera={{
@@ -607,11 +636,7 @@ const Home = () => {
 							}
 							enabled={!currentModal}
 						/>
-						<Environment
-							preset={isNightMode ? "night" : "sunset"}
-							background={isNightMode}
-							blur={isNightMode ? 0.2 : 0.5}
-						/>
+						<CustomEnvironment isNightMode={isNightMode} />
 					</Suspense>
 				</Canvas>
 			</div>
